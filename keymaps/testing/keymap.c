@@ -17,6 +17,7 @@ static char textArr[31];
 static char songArr[31];
 static uint8_t image_data[8192];
 static int image_counter = 0;
+static int graph_counter = 0;
 
 // static char test[] = "Initial";
 
@@ -111,21 +112,16 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             animating = false;
             qp_stop_animation(my_anim);
         }
-        if (timed_out){
-            turn_on_screen();
-        }
-        wipe_image();
-        qp_circle(display, 32, 64, 5, 255, 0, 255, true);
-        qp_circle(display, 64, 64, 5, 255, 0, 255, true);
-        qp_circle(display, 96, 64, 5, 255, 0, 255, true);
-        memcpy(image_data+image_counter,data+1,30);
+        qp_viewport(display, 0, 0, 64, 64);
+        qp_pixdata(display, data+2, 30);
+        memcpy(image_data+image_counter,data+2,30);
         // for (int i = 0; i < 30; i++) {
         //     uprintf("%d %d\n", image_data[i],data[i+2]);
         // }
         image_counter += 30;
         break;
     case 0xFE:
-        memcpy(image_data+image_counter,data+1,30);
+        memcpy(image_data+image_counter,data+2,30);
         image_counter += 30;
         break;
     case 0xFC:
@@ -136,18 +132,11 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
         //         printf("\n");
         //     }
         // }
-        memcpy(image_data+image_counter,data+1,2);
-        // image_counter += 2;
-        // for (int i = 0; i < 8192; i++){
-        //     uprintf("%d ", image_data[i]);
-        // }
-        qp_viewport(display, 64, 0, 0, 64);
-        qp_pixdata(display, image_data, 4096);
-        // wipe_image();
+        memcpy(image_data+image_counter,data+2,2);
+        image_counter += 2;
         // for (int i = 0; i < 64; i++){
-        //     // l, t, r, b
-        //     qp_viewport(display, i, 0, i, 128);
-        //     qp_pixdata(display, image_data+i*128, 64);
+        //     qp_viewport(display, 0, i, 64, i);
+        //     qp_pixdata(display, image_data+i*64, 64);
         // }
         
         
