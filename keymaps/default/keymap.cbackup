@@ -1,0 +1,277 @@
+// Copyright 2023 QMK
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include QMK_KEYBOARD_H
+#include <qp.h>
+#include "gifs/sanacut.qgf.h"
+#include "gifs/monaco129.qgf.h"
+#include "fonts/scp.qff.h"
+#include "qp_st77xx_opcodes.h"
+#include "qp_st7735_opcodes.h"
+#include "qp_comms.h"
+#include "color.h"
+#include "raw_hid.h"
+#define DEBUG_ENABLED false
+
+
+
+static char textArr[31];
+static char songArr[31];
+// static char test[] = "Initial";
+
+// uint8_t framebuffer[SURFACE_REQUIRED_BUFFER_BYTE_SIZE(WIDTH, HEIGHT, 16)] = {0}; // this is where your image data is stored 
+// painter_device_t surface = qp_make_rgb565_surface(WIDTH, HEIGHT, (void *)framebuffer);
+
+static painter_device_t display = NULL;
+static painter_image_handle_t image = NULL;
+static painter_font_handle_t my_font;
+static deferred_token my_anim;
+static bool animating = false;
+// static bool special_anim = false;
+static bool album_art = false;
+static bool timed_out = false;
+// static int playing = 0;
+
+void turn_off_screen(void){
+    setPinOutput(GP29);
+    writePinLow(GP29);
+}
+
+void turn_on_screen(void){
+    setPinOutput(GP29);
+    writePinHigh(GP29);
+}
+
+void wipe_image(void){
+    qp_rect(display, 0,0,130, 130, HSV_BLACK, true);
+}
+
+uint8_t* doubleArray(uint8_t* originalArray, size_t originalSize){
+    uint8_t* newArr = malloc(2*originalSize*sizeof(uint8_t));
+    // if (newArr == NULL){
+    //     return NULL;
+    // }
+    for (int i = 0; i < originalSize; i+=2){
+        newArr[i*2]     = originalArray[i];
+        newArr[i*2+1]   = originalArray[i+1];
+        newArr[i*2+2]   = originalArray[i];
+        newArr[i*2+3]   = originalArray[i+1];
+    }
+    return newArr;
+}
+
+
+// hid function
+void raw_hid_receive(uint8_t *data, uint8_t length) {
+    uint8_t response[length];
+    static int max = 127;
+    static int x = 0;
+    static int y = 0;
+    
+    switch (data[0])
+    {
+    case 0xFF:
+        // uprintf("animating = %i\n",animating);
+        // uprintf("album_art = %i\n",album_art);
+        // uprintf("timed_out = %i\n",timed_out);
+        // uprintf("special_anim = %i\n",special_anim);
+        // uprintf("----------------------------\n");
+        if (data[1]){
+            album_art = true;
+            if (animating){
+                animating = false;
+                qp_stop_animation(my_anim);
+                wipe_image();
+            }
+
+            // int compare = strncmp(textArr,(char *)(data+2),strlen(textArr)-1);
+            if ((strncmp(songArr,(char *)(data+2),strlen(songArr)-1) != 0)){
+                // strcpy(textArr,"\0");
+                strcpy(songArr,(char *)(data+2));
+                qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
+                qp_drawtext(display, 2, 138, my_font, (char *)(data+2));
+            }
+            // uprintf("Playing Likey?\n");
+            // uprintf("%d\n",(strncmp(songArr,"♫ TWICE - Likey",strlen(songArr)-1) == 0));
+
+
+            // if ((strncmp(songArr,"♫ TWICE - Likey",strlen(songArr)-1) == 0)){
+            //     wipe_image();
+            //     special_anim = true;
+            //     image = qp_load_image_mem(gfx_sanacut);
+            //     my_anim = qp_animate(display, 0, 0, image);
+            // }
+            else {
+                qp_stop_animation(my_anim);
+                // special_anim = false;
+            }
+        }
+        else {
+            strcpy(songArr,"\0");
+            // return;
+            album_art = false;
+        }
+
+
+
+        break;
+    case 0xFD:
+        // uprintf("New image recieved\n");
+        if (animating){
+            animating = false;
+            qp_stop_animation(my_anim);
+        }
+        x = 0;
+        y = 0;
+        // wipe_image();
+        break;
+        // qp_viewport(display, 0, 0, 64, 64);
+    case 0xFE:
+        ;
+        uint8_t* pixels = doubleArray(data+1,30);
+        // memcpy(pixels,data+1,30);
+        qp_viewport(display, x, y, x, y+30);
+        qp_pixdata(display, pixels, 30);
+        qp_viewport(display, x+1, y, x+1, y+30);
+        qp_pixdata(display, pixels, 30);
+        free(pixels);
+        y+=30;
+        break;
+    case 0xFC:
+        // y -= 1;
+        // uint8_t shortpixels[8];
+        // memcpy(shortpixels,data+1,8);
+        // uprintf("Image data received!\n");
+        ;
+        uint8_t* shortpixels = doubleArray(data+1,8);
+        qp_viewport(display, x, y, x, y+8);
+        qp_pixdata(display, shortpixels, 8);
+        qp_viewport(display, x+1, y, x+1, y+8);
+        qp_pixdata(display, shortpixels, 8);
+        free(shortpixels);
+        y = 0;
+        x += 2;
+        
+        break;
+    }
+    if (y == max){
+        y = 0;
+        x += 2;
+    }
+    if (x == max){
+        x = 0;
+        y = 0;
+    }
+    raw_hid_send(response, length);
+}
+
+void housekeeping_task_user(void){
+    if ((last_input_activity_elapsed() > 10000) && !album_art){
+        turn_off_screen();
+        timed_out = true;
+        // turn animation off on timeout
+        if (animating){
+            qp_stop_animation(my_anim);
+            animating = false;
+        }
+        // qp_rect(display, 0,0,130, 161, HSV_BLACK, true);
+        
+    }
+    else if (timed_out && (last_input_activity_elapsed() < 10000)){
+        turn_on_screen();
+        timed_out = false;
+        if (!animating){
+            my_anim = qp_animate(display,0,0,image);
+            animating = true;
+        }
+    }
+    else if (!album_art && (last_input_activity_elapsed() > 1000)){
+        if (!animating){
+            my_anim = qp_animate(display,0,0,image);
+            animating = true;
+        }
+    }
+    else if (!album_art &&(last_input_activity_elapsed() < 1000)) {
+        if (animating){
+            wipe_image();
+            qp_stop_animation(my_anim);
+            animating = false;
+        }
+    }
+    // if (!timed_out && !animating && !album_art){
+    //     qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
+    //     image = qp_load_image_mem(gfx_monaco129);
+    //     my_anim = qp_animate(display, 0, 0, image);
+    //     animating = true;
+    //     strcpy(textArr, "layer text\0");
+    //     qp_drawtext(display, 2, 138, my_font, textArr);
+    // }
+
+}
+
+
+
+
+// when KB starts running, set things up
+void keyboard_post_init_user(void) {
+    // backlight
+    setPinOutput(GP29);
+    writePinHigh(GP29);
+    setPinInputHigh(GP14);
+    setPinInputHigh(GP15);
+    // debug_enable = DEBUG_ENABLED;
+
+    
+    
+    // create display
+    display = qp_st7735_make_spi_device(130, 161, GP18, GP16, GP17, 0, 3);
+    qp_init(display, QP_ROTATION_180);
+    qp_rect(display, 0,0,130, 161, HSV_BLACK, true);
+
+    // load image
+    image = qp_load_image_mem(gfx_monaco129);
+    if (image != NULL){
+        my_anim = qp_animate(display,0,0,image);
+        animating = true;
+    }
+    // image = qp_load_image_mem(gfx_sanacut);
+
+    // periodic_drawtext_args_t args = {display, 2, 2, my_font, textArr,100};
+    // defer_exec(100, drawtext_callback, NULL);
+    // strcpy(textArr, test);
+    // textArr[sizeof(textArr) - 1] = '\0';
+    
+
+    // load font
+    my_font = qp_load_font_mem(font_scp);
+    qp_drawtext(display, 2, 138, my_font, textArr);
+
+    
+}
+
+bool encoder_update_user(uint8_t index, bool clockwise) {
+    if (index == 0) { /* First encoder */
+        if (clockwise) {
+            tap_code(KC_A);
+        } else {
+            tap_code(KC_B);
+        }
+    }
+    return false;
+}
+
+// bool process_record_user(uint16_t keycode, keyrecord_t * record) {
+//     if (record->event.pressed) {
+
+//     }
+
+//     return true;
+// }
+
+
+const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+
+    [0] = LAYOUT_ortho_1x2(
+        KC_W, KC_L
+    )
+};

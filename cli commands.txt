@@ -1,0 +1,2 @@
+qmk compile -kb testinggif -km default
+qmk painter-convert-graphics -f mono16 -i ./gifs/monaco72.gif -o ./gifs/
