@@ -17,7 +17,7 @@ static char textArr[31];
 static char songArr[31];
 static uint8_t image_data[8192];
 static int image_counter = 0;
-static int graph_counter = 0;
+// static int graph_counter = 0;
 
 // static char test[] = "Initial";
 

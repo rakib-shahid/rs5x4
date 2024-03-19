@@ -211,8 +211,10 @@ void keyboard_post_init_user(void) {
     // backlight
     setPinOutput(GP29);
     writePinHigh(GP29);
-    setPinInputHigh(GP14);
-    setPinInputHigh(GP15);
+    // setPinInputHigh(GP20);
+    // setPinInputHigh(GP19);
+    setPinInputHigh(GP22);
+    setPinInputHigh(GP21);
     debug_enable = DEBUG_ENABLED;
     
     // create display
