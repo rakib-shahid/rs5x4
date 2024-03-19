@@ -115,9 +115,9 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             turn_on_screen();
         }
         wipe_image();
-        qp_circle(display, 32, 64, 5, 255, 0, 255, true);
-        qp_circle(display, 64, 64, 5, 255, 0, 255, true);
-        qp_circle(display, 96, 64, 5, 255, 0, 255, true);
+        // qp_circle(display, 32, 64, 5, 255, 0, 255, true);
+        // qp_circle(display, 64, 64, 5, 255, 0, 255, true);
+        // qp_circle(display, 96, 64, 5, 255, 0, 255, true);
         memcpy(image_data+image_counter,data+1,30);
         // for (int i = 0; i < 30; i++) {
         //     uprintf("%d %d\n", image_data[i],data[i+2]);
@@ -141,14 +141,22 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
         // for (int i = 0; i < 8192; i++){
         //     uprintf("%d ", image_data[i]);
         // }
-        qp_viewport(display, 64, 0, 0, 64);
-        qp_pixdata(display, image_data, 4096);
+        // qp_viewport(display, 0, 0, 64, 64);
+        // qp_pixdata(display, image_data, 4096);
         // wipe_image();
-        // for (int i = 0; i < 64; i++){
-        //     // l, t, r, b
-        //     qp_viewport(display, i, 0, i, 128);
-        //     qp_pixdata(display, image_data+i*128, 64);
-        // }
+        qp_set_viewport_offsets(display, 32, 32);
+        for (int i = 0; i < 64; i++){
+            // l, t, r, b
+            qp_viewport(display, i, 0, i, 128);
+            qp_pixdata(display, image_data+i*128, 64);
+        }
+        for (int i = 0; i < 8192; i++){
+            uprintf("%d ",image_data[i]);
+            if (i != 0 && i % 30 == 0){
+                uprintf("\n");
+            }
+            
+        }
         
         
         break;
