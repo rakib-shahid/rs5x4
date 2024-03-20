@@ -175,12 +175,17 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
     raw_hid_send(response, length);
 }
 
+// bool timeout_task(bool &album_art, bool &timed_out, bool &animating, int activity){
+//     if 
+// }
+
 void housekeeping_task_user(void){
+    int last_activity = last_input_activity_elapsed();
     // optionally last_encoder_activity_elapsed() instead
     if (!album_art){
         if (!timed_out){
             // timeout screen no activity
-            if (last_input_activity_elapsed() > 10000){
+            if (last_activity > 10000){
                 turn_off_screen();
                 timed_out = true;
                 if (animating){
@@ -189,7 +194,7 @@ void housekeeping_task_user(void){
                 }
             }
             // disable animation for encoder
-            else if (last_input_activity_elapsed() < 1000){
+            else if (last_activity < 1000){
                 if (animating){
                     qp_stop_animation(my_anim);
                     wipe_image();
@@ -198,17 +203,19 @@ void housekeeping_task_user(void){
                 }
             }
             // turn animation back on 
-            else {
-                if (!animating){
-                    my_anim = qp_animate(display,0,0,image);
-                    animating = true;
-                }
+            else if (!animating){
+                my_anim = qp_animate(display,0,0,image);
+                animating = true;
             }
         }
         // turn screen back on after timeout
         else {
-            if (last_input_activity_elapsed() < 10000){
+            if (last_activity < 10000){
                 turn_on_screen();
+                if (!animating){
+                    my_anim = qp_animate(display,0,0,image);
+                    animating = true;
+                }
                 timed_out = false;
             }
         }
