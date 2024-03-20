@@ -11,7 +11,8 @@
 #include "qp_comms.h"
 #include "color.h"
 #include "raw_hid.h"
-#define DEBUG_ENABLED true
+#define DEBUG_ENABLED false
+// #define DEBUG_ENABLED true
 
 static char textArr[31];
 static char songArr[31];
@@ -71,7 +72,7 @@ uint8_t* doubleArray(uint8_t* originalArray, size_t originalSize){
 // hid function
 void raw_hid_receive(uint8_t *data, uint8_t length) {
     uint8_t response[length];
-    
+    // uprintf("size of data = %d\n",sizeof(*data));
     switch (data[0])
     {
     case 0xFF:
@@ -96,6 +97,7 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
                 qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
                 qp_drawtext(display, 2, 138, my_font, (char *)(data+2));
                 strcpy(songArr,(char *)(data+2));
+                uprintf(textArr);
             }
 
             else {
@@ -167,6 +169,9 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
         
         
         break;
+    case 0xFB:
+        uprintf("C++ Host data received\n");
+        uprintf("Data = %s\n",(char *)(data+1));
     }
     raw_hid_send(response, length);
 }
