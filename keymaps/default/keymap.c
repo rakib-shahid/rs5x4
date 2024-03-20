@@ -47,6 +47,12 @@ void wipe_image(void){
     qp_rect(display, 0,0,130, 130, HSV_BLACK, true);
 }
 
+// void time_out(void){
+//     if (){
+
+//     }
+// }
+
 uint8_t* doubleArray(uint8_t* originalArray, size_t originalSize){
     uint8_t* newArr = malloc(2*originalSize*sizeof(uint8_t));
     // if (newArr == NULL){
@@ -76,18 +82,20 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
         // uprintf("----------------------------\n");
         if (data[1]){
             album_art = true;
+            uprintf((char *)(data+2));
+            uprintf("\n");
             if (animating){
                 animating = false;
                 qp_stop_animation(my_anim);
                 wipe_image();
             }
-
             // int compare = strncmp(textArr,(char *)(data+2),strlen(textArr)-1);
             if ((strncmp(songArr,(char *)(data+2),strlen(songArr)-1) != 0)){
                 // strcpy(textArr,"\0");
-                strcpy(songArr,(char *)(data+2));
+                uprintf("New song string is different\n");
                 qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
                 qp_drawtext(display, 2, 138, my_font, (char *)(data+2));
+                strcpy(songArr,(char *)(data+2));
             }
 
             else {
@@ -106,6 +114,7 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
         break;
     case 0xFD:
         uprintf("New image recieved\n");
+        uprintf("size of image_data = %d\n", sizeof(image_data));
         image_counter = 0;
         if (animating){
             animating = false;
@@ -114,7 +123,7 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
         if (timed_out){
             turn_on_screen();
         }
-        wipe_image();
+        // wipe_image();
         // qp_circle(display, 32, 64, 5, 255, 0, 255, true);
         // qp_circle(display, 64, 64, 5, 255, 0, 255, true);
         // qp_circle(display, 96, 64, 5, 255, 0, 255, true);
@@ -144,19 +153,17 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
         // qp_viewport(display, 0, 0, 64, 64);
         // qp_pixdata(display, image_data, 4096);
         // wipe_image();
-        qp_set_viewport_offsets(display, 32, 32);
         for (int i = 0; i < 64; i++){
             // l, t, r, b
-            qp_viewport(display, i, 0, i, 128);
+            qp_viewport(display, i, 0, i, 64);
             qp_pixdata(display, image_data+i*128, 64);
         }
-        for (int i = 0; i < 8192; i++){
-            uprintf("%d ",image_data[i]);
-            if (i != 0 && i % 30 == 0){
-                uprintf("\n");
-            }
-            
-        }
+        // for (int i = 0; i < 8192; i++){
+        //     uprintf("%d ",image_data[i]);
+        //     if (i != 0 && i % 30 == 0){
+        //         uprintf("\n");
+        //     }
+        // }
         
         
         break;
