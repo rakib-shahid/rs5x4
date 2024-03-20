@@ -97,13 +97,12 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
                 qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
                 qp_drawtext(display, 2, 138, my_font, (char *)(data+2));
                 strcpy(songArr,(char *)(data+2));
-                uprintf(textArr);
+                // uprintf(textArr);
             }
-
-            else {
-                qp_stop_animation(my_anim);
-                // special_anim = false;
-            }
+            // else {
+            //     qp_stop_animation(my_anim);
+            //     // special_anim = false;
+            // }
         }
         else {
             strcpy(songArr,"\0");

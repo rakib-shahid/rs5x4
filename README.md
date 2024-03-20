@@ -2,7 +2,8 @@
 
 ![rs5x4](imgur.com image replace me!)
 
-*A short description of the keyboard/project*
+* image not drawing properly
+* nested if/else extremely slow. figure out a better way.
 
 * Keyboard Maintainer: [rakib-shahid](https://github.com/rakib-shahid)
 * Hardware Supported: *The PCBs, controllers supported*
@@ -11,10 +12,6 @@
 Make example for this keyboard (after setting up your build environment):
 
     make rs5x4:default
-
-Flashing example for this keyboard:
-
-    make rs5x4:default:flash
 
 See the [build environment setup](https://docs.qmk.fm/#/getting_started_build_tools) and the [make instructions](https://docs.qmk.fm/#/getting_started_make_guide) for more information. Brand new to QMK? Start with our [Complete Newbs Guide](https://docs.qmk.fm/#/newbs).
 
