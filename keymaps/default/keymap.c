@@ -48,17 +48,8 @@ void wipe_image(void){
     qp_rect(display, 0,0,130, 130, HSV_BLACK, true);
 }
 
-// void time_out(void){
-//     if (){
-
-//     }
-// }
-
-uint8_t* doubleArray(uint8_t* originalArray, size_t originalSize){
+uint8_t* doubleArray(uint8_t* originalArray, int originalSize){
     uint8_t* newArr = malloc(2*originalSize*sizeof(uint8_t));
-    // if (newArr == NULL){
-    //     return NULL;
-    // }
     for (int i = 0; i < originalSize; i+=2){
         newArr[i*2]     = originalArray[i];
         newArr[i*2+1]   = originalArray[i+1];
@@ -72,107 +63,67 @@ uint8_t* doubleArray(uint8_t* originalArray, size_t originalSize){
 // hid function
 void raw_hid_receive(uint8_t *data, uint8_t length) {
     uint8_t response[length];
-    // uprintf("size of data = %d\n",sizeof(*data));
     switch (data[0])
     {
-    case 0xFF:
-        // uprintf("animating = %i\n",animating);
-        // uprintf("album_art = %i\n",album_art);
-        // uprintf("timed_out = %i\n",timed_out);
-        // uprintf("special_anim = %i\n",special_anim);
-        // uprintf("----------------------------\n");
-        if (data[1]){
-            album_art = true;
-            uprintf((char *)(data+2));
-            uprintf("\n");
+        // new song string
+        case 0xFF:
+            if (data[1]){
+                album_art = true;
+                if (animating){
+                    animating = false;
+                    qp_stop_animation(my_anim);
+                    wipe_image();
+                }
+                if ((strncmp(songArr,(char *)(data+2),strlen(songArr)-1) != 0)){
+                    qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
+                    qp_drawtext(display, 2, 138, my_font, (char *)(data+2));
+                    strcpy(songArr,(char *)(data+2));
+                }
+            }
+            else {
+                strcpy(songArr,"\0");
+                // return;
+                album_art = false;
+            }
+            break;
+        // new image data (1st hid message)
+        case 0xFD:
+            uprintf("New image recieved\n");
+            image_counter = 0;
             if (animating){
                 animating = false;
                 qp_stop_animation(my_anim);
-                wipe_image();
             }
-            // int compare = strncmp(textArr,(char *)(data+2),strlen(textArr)-1);
-            if ((strncmp(songArr,(char *)(data+2),strlen(songArr)-1) != 0)){
-                // strcpy(textArr,"\0");
-                uprintf("New song string is different\n");
-                qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
-                qp_drawtext(display, 2, 138, my_font, (char *)(data+2));
-                strcpy(songArr,(char *)(data+2));
-                // uprintf(textArr);
+            memcpy(image_data+image_counter,data+1,30);
+            image_counter += 30;
+            break;
+        // intermediate image data
+        case 0xFE:
+            memcpy(image_data+image_counter,data+1,30);
+            image_counter += 30;
+            break;
+        // final image data (last 2 bytes of 8192)
+        case 0xFC:
+            uprintf("Final data received, writing to screen\n");
+            memcpy(image_data+image_counter,data+1,2);
+            uint8_t* pixels = doubleAndDuplicate(image_data,8192);           
+            for (int i = 0; i < 128; i+=2){
+                // l, t, r, b
+                // draw to 2 columns
+                qp_viewport(display, i, 0, i, 128);
+                qp_pixdata(display, pixels+i*256, 128);
+                qp_viewport(display, i+1, 0, i+1, 128);
+                qp_pixdata(display, pixels+i*256, 128);
             }
-            // else {
-            //     qp_stop_animation(my_anim);
-            //     // special_anim = false;
-            // }
-        }
-        else {
-            strcpy(songArr,"\0");
-            // return;
-            album_art = false;
-        }
-
-
-
-        break;
-    case 0xFD:
-        uprintf("New image recieved\n");
-        uprintf("size of image_data = %d\n", sizeof(image_data));
-        image_counter = 0;
-        if (animating){
-            animating = false;
-            qp_stop_animation(my_anim);
-        }
-        if (timed_out){
-            turn_on_screen();
-        }
-        // wipe_image();
-        // qp_circle(display, 32, 64, 5, 255, 0, 255, true);
-        // qp_circle(display, 64, 64, 5, 255, 0, 255, true);
-        // qp_circle(display, 96, 64, 5, 255, 0, 255, true);
-        memcpy(image_data+image_counter,data+1,30);
-        // for (int i = 0; i < 30; i++) {
-        //     uprintf("%d %d\n", image_data[i],data[i+2]);
-        // }
-        image_counter += 30;
-        break;
-    case 0xFE:
-        memcpy(image_data+image_counter,data+1,30);
-        image_counter += 30;
-        break;
-    case 0xFC:
-
-        // for (int i = 0; i < sizeof(image_data)/sizeof(image_data[0]); i++) {
-        //     printf("%d ", image_data[i]);
-        //     if (i % 64 == 0){
-        //         printf("\n");
-        //     }
-        // }
-        memcpy(image_data+image_counter,data+1,2);
-        // image_counter += 2;
-        // for (int i = 0; i < 8192; i++){
-        //     uprintf("%d ", image_data[i]);
-        // }
-        // qp_viewport(display, 0, 0, 64, 64);
-        // qp_pixdata(display, image_data, 4096);
-        // wipe_image();
-        for (int i = 0; i < 64; i++){
-            // l, t, r, b
-            qp_viewport(display, i, 0, i, 64);
-            qp_pixdata(display, image_data+i*128, 64);
-        }
-        // for (int i = 0; i < 8192; i++){
-        //     uprintf("%d ",image_data[i]);
-        //     if (i != 0 && i % 30 == 0){
-        //         uprintf("\n");
-        //     }
-        // }
-        
-        
-        break;
-    case 0xFB:
-        uprintf("C++ Host data received\n");
-        uprintf("Data = %s\n",(char *)(data+1));
-        qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
-        qp_drawtext(display, 2, 138, my_font, (char *)(data+2));
+            free(pixels);
+            image_counter = 0;              
+            break;
+        // testing c++ hidapi, no longer needed
+        case 0xFB:
+            uprintf("C++ Host data received\n");
+            uprintf("Data = %s\n",(char *)(data+1));
+            qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
+            qp_drawtext(display, 2, 138, my_font, (char *)(data+2));
     }
     raw_hid_send(response, length);
 }
@@ -226,6 +177,7 @@ void housekeeping_task_user(void){
         // keep screen on and do album stuff
         if (timed_out){
             turn_on_screen();
+            wipe_image();
             timed_out = false;
         }
     }

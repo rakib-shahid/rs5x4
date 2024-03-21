@@ -2,8 +2,7 @@
 
 ![rs5x4](imgur.com image replace me!)
 
-* image not drawing properly
-* nested if/else extremely slow. figure out a better way.
+* image only drawing to left half
 
 * Keyboard Maintainer: [rakib-shahid](https://github.com/rakib-shahid)
 * Hardware Supported: *The PCBs, controllers supported*
