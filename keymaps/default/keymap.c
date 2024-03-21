@@ -171,6 +171,8 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
     case 0xFB:
         uprintf("C++ Host data received\n");
         uprintf("Data = %s\n",(char *)(data+1));
+        qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
+        qp_drawtext(display, 2, 138, my_font, (char *)(data+2));
     }
     raw_hid_send(response, length);
 }
