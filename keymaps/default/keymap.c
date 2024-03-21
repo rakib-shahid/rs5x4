@@ -82,6 +82,7 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             }
             else {
                 strcpy(songArr,"\0");
+                qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
                 // return;
                 album_art = false;
             }
@@ -106,14 +107,14 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
         case 0xFC:
             uprintf("Final data received, writing to screen\n");
             memcpy(image_data+image_counter,data+1,2);
-            uint8_t* pixels = doubleAndDuplicate(image_data,8192);           
-            for (int i = 0; i < 128; i+=2){
+            uint8_t* pixels = doubleArray(image_data,8192);           
+            for (int i = 0,c = 0; i < 128; i+=2,c+=1){
                 // l, t, r, b
                 // draw to 2 columns
                 qp_viewport(display, i, 0, i, 128);
-                qp_pixdata(display, pixels+i*256, 128);
+                qp_pixdata(display, pixels+c*256, 128);
                 qp_viewport(display, i+1, 0, i+1, 128);
-                qp_pixdata(display, pixels+i*256, 128);
+                qp_pixdata(display, pixels+c*256, 128);
             }
             free(pixels);
             image_counter = 0;              
