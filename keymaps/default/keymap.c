@@ -74,7 +74,7 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
                     qp_stop_animation(my_anim);
                 }
                 if ((strncmp(songArr,(char *)(data+2),strlen(songArr)-1) != 0)){
-                    qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
+                    qp_rect(display, 0,132,131, 162, HSV_BLACK, true);
                     qp_drawtext(display, 2, 138, my_font, (char *)(data+2));
                     strcpy(songArr,(char *)(data+2));
                 }
@@ -138,6 +138,18 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
                 qp_pixdata(display, pixels+c*256, 128);
             }
             free(pixels);
+        case 0xFA:
+            ;
+            // uprintf("got new progress info\n");
+            int length = data[1];
+            if (data[2] == 1){
+                qp_rect(display, 0, 129, 131, 131, 0, 0, 0, true);
+            }
+            // uprintf("data value = %d pixels",length);
+            // qp_line(device, x0, y0, x1, y1, hue, sat, val);
+            // qp_line(display, 0, 129,length,129,255,0,255);
+            // qp_rect(device, left, top, right, bottom, hue, sat, val, filled);
+            qp_rect(display, 0, 129, length, 131, 255, 0, 255, true);
     }
     raw_hid_send(response, length);
 }
