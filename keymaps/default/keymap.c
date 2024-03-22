@@ -72,7 +72,6 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
                 if (animating){
                     animating = false;
                     qp_stop_animation(my_anim);
-                    wipe_image();
                 }
                 if ((strncmp(songArr,(char *)(data+2),strlen(songArr)-1) != 0)){
                     qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
@@ -105,7 +104,8 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             break;
         // final image data (last 2 bytes of 8192)
         case 0xFC:
-            uprintf("Final data received, writing to screen\n");
+            wipe_image();
+            // uprintf("Final data received, writing to screen\n");
             memcpy(image_data+image_counter,data+1,2);
             uint8_t* pixels = doubleArray(image_data,8192);           
             for (int i = 0,c = 0; i < 128; i+=2,c+=1){
@@ -119,12 +119,25 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             free(pixels);
             image_counter = 0;              
             break;
-        // testing c++ hidapi, no longer needed
+        // redraw old art (song didnt change since pausing)
         case 0xFB:
-            uprintf("C++ Host data received\n");
-            uprintf("Data = %s\n",(char *)(data+1));
-            qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
-            qp_drawtext(display, 2, 138, my_font, (char *)(data+2));
+            // uprintf("Re-drawing old art\n");
+            if (animating){
+                qp_stop_animation(my_anim);
+                animating = false;
+            }
+            album_art = true;
+            wipe_image();
+            pixels = doubleArray(image_data,8192);           
+            for (int i = 0,c = 0; i < 128; i+=2,c+=1){
+                // l, t, r, b
+                // draw to 2 columns
+                qp_viewport(display, i, 0, i, 128);
+                qp_pixdata(display, pixels+c*256, 128);
+                qp_viewport(display, i+1, 0, i+1, 128);
+                qp_pixdata(display, pixels+c*256, 128);
+            }
+            free(pixels);
     }
     raw_hid_send(response, length);
 }
@@ -178,7 +191,6 @@ void housekeeping_task_user(void){
         // keep screen on and do album stuff
         if (timed_out){
             turn_on_screen();
-            wipe_image();
             timed_out = false;
         }
     }
