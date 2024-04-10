@@ -19,6 +19,13 @@ static char songArr[31];
 static uint8_t image_data[8192];
 static int image_counter = 0;
 
+enum layer_names{
+    _NUMPAD,
+    _MEDIA,
+    _LAYER3,
+    _LAYER4
+};
+
 // static char test[] = "Initial";
 
 // uint8_t framebuffer[SURFACE_REQUIRED_BUFFER_BYTE_SIZE(WIDTH, HEIGHT, 16)] = {0}; // this is where your image data is stored 
@@ -32,6 +39,7 @@ static bool animating = false;
 // static bool special_anim = false;
 static bool album_art = false;
 static bool timed_out = false;
+static bool caps_on;
 // static int playing = 0;
 
 void turn_off_screen(void){
@@ -158,6 +166,11 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
 //     if 
 // }
 
+void writeLayerState(char* toWrite){
+    qp_rect(display, 0,132,131, 162, HSV_BLACK, true);
+    qp_drawtext(display, 2, 138, my_font, (char *)(toWrite));
+}
+
 void housekeeping_task_user(void){
     int last_activity = last_input_activity_elapsed();
     // optionally last_encoder_activity_elapsed() instead
@@ -186,6 +199,12 @@ void housekeeping_task_user(void){
                 my_anim = qp_animate(display,0,0,image);
                 animating = true;
             }
+            caps_on = host_keyboard_led_state().caps_lock;
+            if (caps_on) {
+                sethsv(0,0,255, (rgb_led_t *)&led[0]);
+                rgblight_set();
+            }
+            rgblight_set();
         }
         // turn screen back on after timeout
         else {
@@ -208,7 +227,36 @@ void housekeeping_task_user(void){
     }
 }
 
-
+layer_state_t layer_state_set_user(layer_state_t state) {
+    caps_on = host_keyboard_led_state().caps_lock;
+    switch (get_highest_layer(state)) {
+        case    _NUMPAD:
+            writeLayerState("Numpad Layer");
+            if (!caps_on) {
+                sethsv(127,255,30, (rgb_led_t *)&led[0]);
+            }
+            break;
+        case    _MEDIA:
+            writeLayerState("Media Layer");
+            if (!caps_on) {
+                sethsv(201,255,30, (rgb_led_t *)&led[0]);
+            }
+            break;
+        case    _LAYER3:
+            writeLayerState("Navigation Layer");
+            if (!caps_on) {
+                sethsv(85,255,30, (rgb_led_t *)&led[0]);
+            }
+            break;
+        case    _LAYER4:
+            writeLayerState("Macro Layer");
+            if (!caps_on) {
+                sethsv(21,255,30, (rgb_led_t *)(&led[0]));
+            }
+            break;
+    }
+  return state;
+}
 
 
 // when KB starts running, set things up
@@ -236,17 +284,17 @@ void keyboard_post_init_user(void) {
 
     // load font
     my_font = qp_load_font_mem(font_scp);
-    qp_drawtext(display, 2, 138, my_font, textArr);
-
+    qp_drawtext(display, 2, 138, my_font, textArr);    
     
+    sethsv(0,0,0, (rgb_led_t *)&led[0]);
 }
 
 bool encoder_update_user(uint8_t index, bool clockwise) {
     if (index == 0) { /* First encoder */
-        if (clockwise) {
-            tap_code(KC_A);
+        if (!clockwise) {
+            tap_code(KC_VOLU);
         } else {
-            tap_code(KC_B);
+            tap_code(KC_VOLD);
         }
     }
     return false;
@@ -263,7 +311,36 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
-    [0] = LAYOUT_ortho_1x2(
-        KC_W, KC_L
+    //  NUMPAD
+    [0] = LAYOUT_ortho_5x4(
+        KC_HOME,    KC_END,     KC_DELETE,  KC_MUTE,
+        KC_KP_7,    KC_KP_8,    KC_KP_9,    KC_KP_MINUS,
+        KC_KP_4,    KC_KP_5,    KC_KP_6,    KC_KP_PLUS,
+        KC_KP_1,    KC_KP_2,    KC_KP_3,    KC_KP_ASTERISK,
+        TO(1),      KC_KP_0,    KC_KP_DOT,  KC_KP_SLASH
+    ),
+    // MEDIA KEYS
+    [1] = LAYOUT_ortho_5x4(
+        KC_HOME,    KC_END,     KC_DELETE,  KC_MUTE,
+        KC_FIND,                KC_CAPS_LOCK,                KC_WH_U,                KC_AUDIO_MUTE,
+        KC_MEDIA_PREV_TRACK,    KC_MPLY,    KC_MEDIA_NEXT_TRACK,    KC_AUDIO_VOL_UP,
+        KC_CALC,                KC_MYCM,                KC_WH_D,                KC_AUDIO_VOL_DOWN,
+        TO(2),                  KC_CUT,                 KC_COPY,                KC_PASTE
+    ),
+    // NAVIGATION KEYS
+    [2] = LAYOUT_ortho_5x4(
+        KC_HOME,    KC_END,     KC_DELETE,  KC_MUTE,
+        KC_INSERT,      KC_HOME,    KC_PGUP,        KC_PSCR,
+        KC_DELETE,      KC_END,     KC_PGDN,        KC_SCROLL_LOCK,
+        KC_COPY,        KC_PASTE,    KC_UP,          KC_PAUSE,
+        TO(3),          KC_LEFT,    KC_DOWN,        KC_RIGHT
+    ),
+    // blank for now
+    [3] = LAYOUT_ortho_5x4(
+        KC_HOME,    KC_END,     KC_DELETE,  KC_MUTE,
+        KC_NO,      KC_NO,      KC_NO,      KC_NO,
+        KC_NO,      KC_NO,      KC_NO,      KC_NO,
+        KC_NO ,     KC_NO,      KC_NO,      KC_NO,
+        TO(0),      KC_NO,      KC_NO,      KC_NO
     )
 };

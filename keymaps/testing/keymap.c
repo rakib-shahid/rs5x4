@@ -276,9 +276,9 @@ void keyboard_post_init_user(void) {
 bool encoder_update_user(uint8_t index, bool clockwise) {
     if (index == 0) { /* First encoder */
         if (clockwise) {
-            tap_code(KC_A);
+            tap_code(KC_KB_VOLUME_UP);
         } else {
-            tap_code(KC_B);
+            tap_code(KC_KB_VOLUME_DOWN);
         }
     }
     return false;
@@ -295,7 +295,36 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
-    [0] = LAYOUT_ortho_1x2(
-        KC_W, KC_L
+    //  NUMPAD
+    [0] = LAYOUT_ortho_5x4(
+        KC_HOME,    KC_END,     KC_DELETE,  KC_KB_MUTE,
+        KC_KP_7,    KC_KP_8,    KC_KP_9,    KC_KP_MINUS,
+        KC_KP_4,    KC_KP_5,    KC_KP_6,    KC_KP_PLUS,
+        KC_KP_1,    KC_KP_2,    KC_KP_3,    KC_KP_ASTERISK,
+        TO(1),      KC_KP_0,    KC_KP_DOT,  KC_KP_SLASH
+    ),
+    // MEDIA KEYS
+    [1] = LAYOUT_ortho_5x4(
+        KC_HOME,    KC_END,     KC_DELETE,  KC_KB_MUTE,
+        KC_FIND,                KC_CAPS_LOCK,                KC_WH_U,                KC_AUDIO_MUTE,
+        KC_MEDIA_PREV_TRACK,    KC_MPLY,    KC_MEDIA_NEXT_TRACK,    KC_AUDIO_VOL_UP,
+        KC_CALC,                KC_MYCM,                KC_WH_D,                KC_AUDIO_VOL_DOWN,
+        TO(2),                  KC_CUT,                 KC_COPY,                KC_PASTE
+    ),
+    // NAVIGATION KEYS
+    [2] = LAYOUT_ortho_5x4(
+        KC_HOME,    KC_END,     KC_DELETE,  KC_KB_MUTE,
+        KC_INSERT,      KC_HOME,    KC_PGUP,        KC_PSCR,
+        KC_DELETE,      KC_END,     KC_PGDN,        KC_SCROLL_LOCK,
+        KC_COPY,        KC_PASTE,    KC_UP,          KC_PAUSE,
+        TO(3),          KC_LEFT,    KC_DOWN,        KC_RIGHT
+    ),
+    // blank for now
+    [3] = LAYOUT_ortho_5x4(
+        KC_HOME,    KC_END,     KC_DELETE,  KC_KB_MUTE,
+        KC_NO,      KC_NO,      KC_NO,      KC_NO,
+        KC_NO,      KC_NO,      KC_NO,      KC_NO,
+        KC_NO ,     KC_NO,      KC_NO,      KC_NO,
+        TO(0),      KC_NO,      KC_NO,      KC_NO
     )
 };
