@@ -173,6 +173,7 @@ void writeLayerState(char* toWrite){
 
 void housekeeping_task_user(void){
     int last_activity = last_input_activity_elapsed();
+    rgblight_set();
     // optionally last_encoder_activity_elapsed() instead
     if (!album_art){
         if (!timed_out){
@@ -199,12 +200,7 @@ void housekeeping_task_user(void){
                 my_anim = qp_animate(display,0,0,image);
                 animating = true;
             }
-            caps_on = host_keyboard_led_state().caps_lock;
-            if (caps_on) {
-                sethsv(0,0,255, (rgb_led_t *)&led[0]);
-                rgblight_set();
-            }
-            rgblight_set();
+
         }
         // turn screen back on after timeout
         else {
