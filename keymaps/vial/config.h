@@ -25,3 +25,7 @@
 #define ENCODERS_PAD_B { GP21 }
 #define ENCODER_RESOLUTION 4
 // #define ENCODER_DEFAULT_POS 0x3
+#define VIAL_KEYBOARD_UID {0x2D, 0x02, 0x7B, 0x51, 0xC0, 0x8E, 0x74, 0xFD}
+
+#define MATRIX_ROWS 5
+#define MATRIX_COLS 4

@@ -69,12 +69,12 @@ uint8_t* doubleArray(uint8_t* originalArray, int originalSize){
 
 
 // hid function
-void raw_hid_receive(uint8_t *data, uint8_t length) {
-    uint8_t response[length];
+void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
     switch (data[0])
     {
         // new song string
         case 0xFF:
+            // uprintf("New song string recieved\n");
             if (data[1]){
                 album_art = true;
                 if (animating){
@@ -96,7 +96,7 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             break;
         // new image data (1st hid message)
         case 0xFD:
-            uprintf("New image recieved\n");
+            // uprintf("New image recieved\n");
             image_counter = 0;
             if (animating){
                 animating = false;
@@ -106,12 +106,14 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             image_counter += 30;
             break;
         // intermediate image data
-        case 0xFE:
+        case 0xEE:
+            // uprintf("New intermediate image data recieved\n");
             memcpy(image_data+image_counter,data+1,30);
             image_counter += 30;
             break;
         // final image data (last 2 bytes of 8192)
         case 0xFC:
+            // uprintf("New final image data recieved\n");
             wipe_image();
             // uprintf("Final data received, writing to screen\n");
             memcpy(image_data+image_counter,data+1,2);
@@ -159,7 +161,6 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             // qp_rect(device, left, top, right, bottom, hue, sat, val, filled);
             qp_rect(display, 0, 129, length, 131, 255, 0, 255, true);
     }
-    raw_hid_send(response, length);
 }
 
 // bool timeout_task(bool &album_art, bool &timed_out, bool &animating, int activity){
