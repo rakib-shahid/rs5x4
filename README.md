@@ -2,7 +2,9 @@
 
 ![rs5x4](imgur.com image replace me!)
 
-* image only drawing to left half
+* occasionally bugs TF out (restarting host fixes, probably due to awful python code)
+* potential for 128x128 and dynamic gif for specific songs
+* hid code 0xEE is used by vial so spotify data and vial use cannot be simultaneous, pause spotify then use vial
 
 * Keyboard Maintainer: [rakib-shahid](https://github.com/rakib-shahid)
 * Hardware Supported: *The PCBs, controllers supported*
