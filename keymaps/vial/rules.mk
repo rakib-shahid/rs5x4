@@ -7,7 +7,7 @@ QUANTUM_LIB_SRC += spi_master.c
 
 # gifs
 SRC += gifs/monaco129.qgf.c
-SRC += gifs/sanacut.qgf.c
+# SRC += gifs/sanacut.qgf.c
 
 # font
 SRC += fonts/scp.qff.c
@@ -19,7 +19,7 @@ ENCODER_ENABLE = yes
 # DEFERRED_EXEC_ENABLE = yes
 RAW_ENABLE = yes
 LTO_ENABLE = yes
-CONSOLE_ENABLE = yes
+# CONSOLE_ENABLE = yes
 
 WS2812_DRIVER = vendor
 RGBLIGHT_ENABLE = yes

@@ -3,7 +3,7 @@
 
 #include QMK_KEYBOARD_H
 #include <qp.h>
-#include "gifs/sanacut.qgf.h"
+// #include "gifs/sanacut.qgf.h"
 #include "gifs/monaco129.qgf.h"
 #include "fonts/scp.qff.h"
 #include "qp_st77xx_opcodes.h"
@@ -72,7 +72,7 @@ uint8_t* doubleArray(uint8_t* originalArray, int originalSize){
 void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
     switch (data[0]) {
         // new song string
-        case 0xFF:
+        case 0xFF: 
             // uprintf("New song string received\n");
             if (data[1]) {
                 album_art = true;
@@ -96,34 +96,48 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
             break;
 
         // new image data (1st hid message)
-        case 0xFD:
-            uprintf("New image received\n");
+        case 0xED:
+            // uprintf("New image received\n");
+            memset(image_data, 0, sizeof(image_data));
             image_counter = 0;
             if (animating) {
                 animating = false;
                 qp_stop_animation(my_anim);
-                uprintf("Stopped animation\n");
+                // uprintf("Stopped animation\n");
             }
-            memcpy(image_data, data + 2, 30);
+            memcpy(image_data, data + 1, 30);
+            // uprintf("First 30 elements of image_data: ");
+            // for (int i = 0; i < 30; i++) {
+            //     uprintf("%d,", image_data[i]);
+            // }
+            // uprintf("\n");
             image_counter += 30;
-            uprintf("Initial image data copied, counter: %d\n", image_counter);
+            // uprintf("Initial image data copied, counter: %d\n", image_counter);
             break;
 
         // intermediate image data
         case 0xEE:
-            uprintf("Intermediate image data received\n");
-            memcpy(image_data + image_counter, data + 2, 30);
+            // uprintf("Intermediate image data received\n");
+            memcpy(image_data + image_counter, data + 1, 30);
             image_counter += 30;
-            uprintf("Intermediate image data copied, counter: %d\n", image_counter);
+            // uprintf("Intermediate image data copied, counter: %d\n", image_counter);
             break;
 
         // final image data
         case 0xFC:
-            uprintf("Final image data received\n");
+            // uprintf("Final image data received\n");
+            // // print size of image_data
+            // uprintf("Size of image_data: %d\n", sizeof(image_data));
+            // // print last 30 elements of image_data
+            // uprintf("Last 30 elements of image_data: ");
+            // for (int i = 0; i < 30; i++) {
+            //     uprintf("%d,", image_data[32738 + i]);
+            // }
+            // uprintf("\n");
             wipe_image();
-            memcpy(image_data + image_counter, data + 2, 30);
+            memcpy(image_data + image_counter, data + 1, 30);
             // print image counter
-            uprintf("Image counter: %d\n",image_counter);
+            // uprintf("Image counter: %d\n",image_counter);
             // uint8_t* pixels = doubleArray(image_data, 32768); // Update to match the new array size
             for (int i = 0, c = 0; i < 128; i += 1, c += 1) {
                 // draw to 2 columns
@@ -135,16 +149,16 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
             }
             // free(pixels);
             image_counter = 0;
-            uprintf("Image data written to screen\n");
+            // uprintf("Image data written to screen\n");
             break;
 
         // redraw old art (song didn't change since pausing)
         case 0xFB:
-            uprintf("Re-drawing old art\n");
+            // uprintf("Re-drawing old art\n");
             if (animating) {
                 qp_stop_animation(my_anim);
                 animating = false;
-                uprintf("Stopped animation\n");
+                // uprintf("Stopped animation\n");
             }
             album_art = true;
             wipe_image();
@@ -158,7 +172,7 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
                 qp_pixdata(display, image_data + c * 256, 128);
             }
             // free(pixels);
-            uprintf("Old art re-drawn\n");
+            // uprintf("Old art re-drawn\n");
             break;
 
         case 0xFA:

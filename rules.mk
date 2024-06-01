@@ -7,7 +7,7 @@ QUANTUM_LIB_SRC += spi_master.c
 
 # gifs
 SRC += gifs/monaco129.qgf.c
-SRC += gifs/sanacut.qgf.c
+# SRC += gifs/sanacut.qgf.c
 
 # font
 SRC += fonts/scp.qff.c
