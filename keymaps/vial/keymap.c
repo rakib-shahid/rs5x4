@@ -36,6 +36,8 @@ static painter_image_handle_t image = NULL;
 static painter_font_handle_t my_font;
 static deferred_token my_anim;
 static bool animating = false;
+static bool layer_name_displayed = false;
+static int messages_since_layer_state = 0;
 // static bool special_anim = false;
 static bool album_art = false;
 static bool timed_out = false;
@@ -74,24 +76,25 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
         // new song string
         case 0xFF: 
             // uprintf("New song string received\n");
-            if (data[1]) {
+            if (data[1]){
                 album_art = true;
-                if (animating) {
+                messages_since_layer_state += 1;
+                if (animating){
                     animating = false;
                     qp_stop_animation(my_anim);
-                    // uprintf("Stopped animation\n");
                 }
-                if ((strncmp(songArr, (char *)(data + 2), strlen(songArr) - 1) != 0)) {
-                    qp_rect(display, 0, 132, 131, 162, HSV_BLACK, true);
-                    qp_drawtext(display, 2, 138, my_font, (char *)(data + 2));
-                    strcpy(songArr, (char *)(data + 2));
-                    // uprintf("Updated song string: %s\n", songArr);
+                if (((strncmp(songArr,(char *)(data+2),strlen(songArr)-1) != 0) || layer_name_displayed) && messages_since_layer_state > 3){
+                    qp_rect(display, 0,132,131, 162, HSV_BLACK, true);
+                    qp_drawtext(display, 2, 138, my_font, (char *)(data+2));
+                    strcpy(songArr,(char *)(data+2));
+                    layer_name_displayed = false;
                 }
-            } else {
-                strcpy(songArr, "\0");
-                qp_rect(display, 0, 130, 131, 162, HSV_BLACK, true);
+            }
+            else {
+                strcpy(songArr,"\0");
+                qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
+                // return;
                 album_art = false;
-                // uprintf("Cleared song string\n");
             }
             break;
 
@@ -251,7 +254,8 @@ void housekeeping_task_user(void){
 
 layer_state_t layer_state_set_user(layer_state_t state) {
     caps_on = host_keyboard_led_state().caps_lock;
-    switch (get_highest_layer(state)) {
+    messages_since_layer_state = 0;
+    switch (get_highest_layer(state)){
         case    _NUMPAD:
             writeLayerState("Numpad Layer");
             if (!caps_on) {
@@ -277,6 +281,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
             }
             break;
     }
+    layer_name_displayed = true;
   return state;
 }
 
