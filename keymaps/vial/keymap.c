@@ -16,7 +16,7 @@
 
 static char textArr[31];
 static char songArr[31];
-static uint8_t image_data[8192];
+static uint8_t image_data[32768];
 static int image_counter = 0;
 
 enum layer_names{
@@ -28,7 +28,7 @@ enum layer_names{
 
 // static char test[] = "Initial";
 
-// uint8_t framebuffer[SURFACE_REQUIRED_BUFFER_BYTE_SIZE(WIDTH, HEIGHT, 16)] = {0}; // this is where your image data is stored
+// uint8_t framebuffer[SURFACE_REQUIRED_BUFFER_BYTE_SIZE(WIDTH, HEIGHT, 16)] = {0}; // this is where your image data is stored 
 // painter_device_t surface = qp_make_rgb565_surface(WIDTH, HEIGHT, (void *)framebuffer);
 
 static painter_device_t display = NULL;
@@ -36,8 +36,6 @@ static painter_image_handle_t image = NULL;
 static painter_font_handle_t my_font;
 static deferred_token my_anim;
 static bool animating = false;
-static bool layer_name_displayed = false;
-static int messages_since_layer_state = 0;
 // static bool special_anim = false;
 static bool album_art = false;
 static bool timed_out = false;
@@ -55,7 +53,7 @@ void turn_on_screen(void){
 }
 
 void wipe_image(void){
-    qp_rect(display, 0,0,130, 131, HSV_BLACK, true);
+    qp_rect(display, 0,0,130, 130, HSV_BLACK, true);
 }
 
 uint8_t* doubleArray(uint8_t* originalArray, int originalSize){
@@ -72,103 +70,112 @@ uint8_t* doubleArray(uint8_t* originalArray, int originalSize){
 
 // hid function
 void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
-    switch (data[0])
-    {
+    switch (data[0]) {
         // new song string
         case 0xFF:
-            // uprintf("New song string recieved\n");
-            if (data[1]){
+            // uprintf("New song string received\n");
+            if (data[1]) {
                 album_art = true;
-                messages_since_layer_state += 1;
-                if (animating){
+                if (animating) {
                     animating = false;
                     qp_stop_animation(my_anim);
+                    // uprintf("Stopped animation\n");
                 }
-                if (((strncmp(songArr,(char *)(data+2),strlen(songArr)-1) != 0) || layer_name_displayed) && messages_since_layer_state > 3){
-                    qp_rect(display, 0,132,131, 162, HSV_BLACK, true);
-                    qp_drawtext(display, 2, 138, my_font, (char *)(data+2));
-                    strcpy(songArr,(char *)(data+2));
-                    layer_name_displayed = false;
+                if ((strncmp(songArr, (char *)(data + 2), strlen(songArr) - 1) != 0)) {
+                    qp_rect(display, 0, 132, 131, 162, HSV_BLACK, true);
+                    qp_drawtext(display, 2, 138, my_font, (char *)(data + 2));
+                    strcpy(songArr, (char *)(data + 2));
+                    // uprintf("Updated song string: %s\n", songArr);
                 }
-            }
-            else {
-                strcpy(songArr,"\0");
-                qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
-                // return;
+            } else {
+                strcpy(songArr, "\0");
+                qp_rect(display, 0, 130, 131, 162, HSV_BLACK, true);
                 album_art = false;
+                // uprintf("Cleared song string\n");
             }
             break;
+
         // new image data (1st hid message)
         case 0xFD:
-            // uprintf("New image recieved\n");
+            uprintf("New image received\n");
             image_counter = 0;
-            if (animating){
+            if (animating) {
                 animating = false;
                 qp_stop_animation(my_anim);
+                uprintf("Stopped animation\n");
             }
-            memcpy(image_data+image_counter,data+1,30);
+            memcpy(image_data, data + 2, 30);
             image_counter += 30;
+            uprintf("Initial image data copied, counter: %d\n", image_counter);
             break;
+
         // intermediate image data
         case 0xEE:
-            // uprintf("New intermediate image data recieved\n");
-            memcpy(image_data+image_counter,data+1,30);
+            uprintf("Intermediate image data received\n");
+            memcpy(image_data + image_counter, data + 2, 30);
             image_counter += 30;
+            uprintf("Intermediate image data copied, counter: %d\n", image_counter);
             break;
-        // final image data (last 2 bytes of 8192)
+
+        // final image data
         case 0xFC:
-            // uprintf("New final image data recieved\n");
+            uprintf("Final image data received\n");
             wipe_image();
-            // uprintf("Final data received, writing to screen\n");
-            memcpy(image_data+image_counter,data+1,2);
-            uint8_t* pixels = doubleArray(image_data,8192);
-            for (int i = 0,c = 0; i < 128; i+=2,c+=1){
-                // l, t, r, b
+            memcpy(image_data + image_counter, data + 2, 30);
+            // print image counter
+            uprintf("Image counter: %d\n",image_counter);
+            // uint8_t* pixels = doubleArray(image_data, 32768); // Update to match the new array size
+            for (int i = 0, c = 0; i < 128; i += 1, c += 1) {
                 // draw to 2 columns
-                qp_viewport(display, i, 0, i, 128);
-                qp_pixdata(display, pixels+c*256, 128);
-                qp_viewport(display, i+1, 0, i+1, 128);
-                qp_pixdata(display, pixels+c*256, 128);
+                // l, t, r, b
+                // qp_viewport(display, i, 0, i, 128);
+                qp_viewport(display, 0, i, 128, i);
+
+                qp_pixdata(display, image_data + c * 256, 128);
             }
-            free(pixels);
+            // free(pixels);
             image_counter = 0;
+            uprintf("Image data written to screen\n");
             break;
-        // redraw old art (song didnt change since pausing)
+
+        // redraw old art (song didn't change since pausing)
         case 0xFB:
-            // uprintf("Re-drawing old art\n");
-            if (animating){
+            uprintf("Re-drawing old art\n");
+            if (animating) {
                 qp_stop_animation(my_anim);
                 animating = false;
+                uprintf("Stopped animation\n");
             }
             album_art = true;
             wipe_image();
-            pixels = doubleArray(image_data,8192);
-            for (int i = 0,c = 0; i < 128; i+=2,c+=1){
-                // l, t, r, b
+            // pixels = doubleArray(image_data, 32768); // Update to match the new array size
+            for (int i = 0, c = 0; i < 128; i += 1, c += 1) {
                 // draw to 2 columns
-                qp_viewport(display, i, 0, i, 128);
-                qp_pixdata(display, pixels+c*256, 128);
-                qp_viewport(display, i+1, 0, i+1, 128);
-                qp_pixdata(display, pixels+c*256, 128);
+                // l, t, r, b
+                // qp_viewport(display, i, 0, i, 128);
+                qp_viewport(display, 0, i, 128, i);
+
+                qp_pixdata(display, image_data + c * 256, 128);
             }
-            free(pixels);
+            // free(pixels);
+            uprintf("Old art re-drawn\n");
+            break;
+
         case 0xFA:
+            // uprintf("Got new progress info\n");
             ;
-            // uprintf("got new progress info\n");
             int length = data[1];
-            if (data[2] == 1){
+            if (data[2] == 1) {
                 qp_rect(display, 0, 129, 131, 131, 0, 0, 0, true);
+                // uprintf("Progress cleared\n");
             }
-            // uprintf("data value = %d pixels",length);
-            // qp_line(device, x0, y0, x1, y1, hue, sat, val);
-            // qp_line(display, 0, 129,length,129,255,0,255);
-            // qp_rect(device, left, top, right, bottom, hue, sat, val, filled);
             qp_rect(display, 0, 129, length, 131, 255, 0, 255, true);
+            // uprintf("Progress updated, length: %d\n", length);
+            break;
     }
 }
-
 // bool timeout_task(bool &album_art, bool &timed_out, bool &animating, int activity){
-//     if
+//     if 
 // }
 
 void writeLayerState(char* toWrite){
@@ -200,7 +207,7 @@ void housekeeping_task_user(void){
                     animating = false;
                 }
             }
-            // turn animation back on
+            // turn animation back on 
             else if (!animating){
                 my_anim = qp_animate(display,0,0,image);
                 animating = true;
@@ -230,8 +237,7 @@ void housekeeping_task_user(void){
 
 layer_state_t layer_state_set_user(layer_state_t state) {
     caps_on = host_keyboard_led_state().caps_lock;
-    messages_since_layer_state = 0;
-    switch (get_highest_layer(state)){
+    switch (get_highest_layer(state)) {
         case    _NUMPAD:
             writeLayerState("Numpad Layer");
             if (!caps_on) {
@@ -257,7 +263,6 @@ layer_state_t layer_state_set_user(layer_state_t state) {
             }
             break;
     }
-    layer_name_displayed = true;
   return state;
 }
 
@@ -299,7 +304,7 @@ void keyboard_post_init_user(void) {
     setPinInputHigh(GP22);
     setPinInputHigh(GP21);
     debug_enable = DEBUG_ENABLED;
-
+    
     // create display
     display = qp_st7735_make_spi_device(130, 161, GP18, GP16, GP17, 0, 3);
     qp_init(display, QP_ROTATION_180);
@@ -314,8 +319,8 @@ void keyboard_post_init_user(void) {
 
     // load font
     my_font = qp_load_font_mem(font_scp);
-    qp_drawtext(display, 2, 138, my_font, textArr);
-
+    qp_drawtext(display, 2, 138, my_font, textArr);    
+    
     sethsv(0,0,0, (rgb_led_t *)&led[0]);
 }
 
