@@ -29,3 +29,6 @@
 
 #define MATRIX_ROWS 5
 #define MATRIX_COLS 4
+
+#define VIAL_TAP_DANCE_ENTRIES 10
+// #define VIAL_MACRO_ENTRIES 10

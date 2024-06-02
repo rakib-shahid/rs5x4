@@ -92,7 +92,8 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
             }
             else {
                 strcpy(songArr,"\0");
-                qp_rect(display, 0,130,131, 162, HSV_BLACK, true);
+                // wipe_image();
+                qp_rect(display, 0,130,130, 162, HSV_BLACK, true);
                 // return;
                 album_art = false;
             }
