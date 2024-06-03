@@ -101,7 +101,7 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
 
         // new image data (1st hid message)
         case 0xED:
-            // uprintf("New image received\n");
+            uprintf("New image received\n");
             memset(image_data, 0, sizeof(image_data));
             image_counter = 0;
             if (animating) {
@@ -129,7 +129,7 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
 
         // final image data
         case 0xFC:
-            // uprintf("Final image data received\n");
+            uprintf("Final image data received\n");
             // // print size of image_data
             // uprintf("Size of image_data: %d\n", sizeof(image_data));
             // // print last 30 elements of image_data
