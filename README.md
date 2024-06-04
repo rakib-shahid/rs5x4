@@ -1,29 +1,23 @@
 # rs5x4
 
-![rs5x4](imgur.com image replace me!)
+![rs5x4](/images/rs5x4.jpg)
 
-* occasionally bugs TF out (restarting host fixes, probably due to awful python code)
-* potential for 128x128 and dynamic gif for specific songs
-* hid code 0xEE is used by vial so spotify data and vial use cannot be simultaneous, pause spotify then use vial
+A major evolution of the [rs5x4](https://github.com/rakib-shahid/rs4x4), now featuring a hot swap PCB, a 128x128 color display, and an optional rotary encoder.
 
-* Keyboard Maintainer: [rakib-shahid](https://github.com/rakib-shahid)
-* Hardware Supported: *The PCBs, controllers supported*
-* Hardware Availability: *Links to where you can find this hardware*
+## **\*Important Note\*** 
+* In order to enable Spotify activity on the screen, some setup is required. Follow the guide on the [rs5x4_host repository](https://github.com/rakib-shahid/rs5x4_host) 
+* Due to HID code conflict, pause spotify when using Vial (will possibly be fixed later)
+* Currently the rotary encoder is not reassignable in Vial, keymap code edit and recompilation is required (again will possibly be fixed later)
 
-Make example for this keyboard (after setting up your build environment):
 
-    make rs5x4:default
+## To-do
 
-See the [build environment setup](https://docs.qmk.fm/#/getting_started_build_tools) and the [make instructions](https://docs.qmk.fm/#/getting_started_make_guide) for more information. Brand new to QMK? Start with our [Complete Newbs Guide](https://docs.qmk.fm/#/newbs).
+- [ ] Fix occasional image misalignment. (image_counter not properly incrementing)
 
-## Bootloader
 
-Enter the bootloader in 3 ways:
+## Changelog
+* switched to 128x128 from 64x64 
 
-* **Bootmagic reset**: Hold down the key at (0,0) in the matrix (usually the top left key or Escape) and plug in the keyboard
-* **Physical reset button**: Briefly press the button on the back of the PCB - some may have pads you must short instead
-* **Keycode in layout**: Press the key mapped to `QK_BOOT` if it is available
+### Vial Make
 
-# Changelog
-* Fixed single pixel of progress bar showing when it shouldn'> [!TIP]
-* Made layer indicator text more readable (on screen for longer) 
+    make rs5x4:vial
