@@ -2,7 +2,9 @@
 
 ![rs5x4](/images/rs5x4.jpg)
 
-A major evolution of the [rs5x4](https://github.com/rakib-shahid/rs4x4), now featuring a hot swap PCB, a 128x128 color display, and an optional rotary encoder.
+A major evolution of the [rs5x4](https://github.com/rakib-shahid/rs4x4), now featuring a hot swap PCB, a 128x128 color display, and an optional rotary encoder. 
+
+Capable of displaying live Spotify activity on the screen!!
 
 ## **\*Important Note\*** 
 * In order to enable Spotify activity on the screen, some setup is required. Follow the guide on the [rs5x4_host repository](https://github.com/rakib-shahid/rs5x4_host) 
@@ -17,6 +19,7 @@ A major evolution of the [rs5x4](https://github.com/rakib-shahid/rs4x4), now fea
 
 ## Changelog
 * switched to 128x128 from 64x64 
+* enabled tap dance
 
 ### Vial Make
 
