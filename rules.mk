@@ -6,7 +6,7 @@ QUANTUM_PAINTER_NUM_IMAGES	= 1
 QUANTUM_LIB_SRC += spi_master.c
 
 # gifs
-SRC += gifs/monaco129.qgf.c
+SRC += gifs/vapor.qgf.c
 # SRC += gifs/sanacut.qgf.c
 
 # font

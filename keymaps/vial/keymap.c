@@ -1,10 +1,14 @@
 // Copyright 2023 QMK
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// CHANGE THIS TO YOUR ACTUAL GIF NAME
+// MAKE YOUR GIF NAME ONLY ALPHANUMERIC
+
+
 #include QMK_KEYBOARD_H
 #include <qp.h>
 // #include "gifs/sanacut.qgf.h"
-#include "gifs/monaco129.qgf.h"
+#include "gifs/vapor.qgf.h"
 #include "fonts/scp.qff.h"
 #include "qp_st77xx_opcodes.h"
 #include "qp_st7735_opcodes.h"
@@ -13,6 +17,8 @@
 #include "raw_hid.h"
 #define DEBUG_ENABLED false
 // #define DEBUG_ENABLED true
+
+
 
 static char textArr[31];
 static char songArr[31];
@@ -208,7 +214,7 @@ void housekeeping_task_user(void){
     if (!album_art){
         if (!timed_out){
             // timeout screen no activity
-            if (last_activity > 10000){
+            if (last_activity > 30000){
                 turn_off_screen();
                 timed_out = true;
                 if (animating){
@@ -234,7 +240,7 @@ void housekeeping_task_user(void){
         }
         // turn screen back on after timeout
         else {
-            if (last_activity < 10000){
+            if (last_activity < 30000){
                 turn_on_screen();
                 if (!animating){
                     my_anim = qp_animate(display,0,0,image);
@@ -331,7 +337,7 @@ void keyboard_post_init_user(void) {
     qp_rect(display, 0,0,130, 161, HSV_BLACK, true);
 
     // load image
-    image = qp_load_image_mem(gfx_monaco129);
+    image = qp_load_image_mem(gfx_vapor);
     if (image != NULL){
         my_anim = qp_animate(display,0,0,image);
         animating = true;
