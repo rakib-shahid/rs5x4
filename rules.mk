@@ -12,6 +12,7 @@ SRC += gifs/vapor.qgf.c
 # font
 SRC += fonts/scp.qff.c
 
+
 ENCODER_ENABLE = yes
 # ENCODER_MAP_ENABLE = yes
 
@@ -30,3 +31,8 @@ VIAL_INSECURE = yes
 # VIALRGB_ENABLE = yes
 # RGB_MATRIX_ENABLE = yes
 TAP_DANCE_ENABLE = yes
+
+# FS TESTING
+SRC += lfs/lfs.c
+SRC += lfs/lfs_util.c
+SRC += display.c
