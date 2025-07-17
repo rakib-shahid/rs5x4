@@ -13,8 +13,7 @@ SRC += gifs/vapor.qgf.c
 SRC += fonts/scp.qff.c
 
 
-ENCODER_ENABLE = yes
-# ENCODER_MAP_ENABLE = yes
+ENCODER_MAP_ENABLE = yes
 
 # EXTRALDFLAGS = -Wl,--defsym,FLASH_LEN=8192k
 # DEFERRED_EXEC_ENABLE = yes
@@ -36,3 +35,4 @@ VIAL_INSECURE = yes
 # SRC += lfs/lfs.c
 # SRC += lfs/lfs_util.c
 SRC += display.c
+

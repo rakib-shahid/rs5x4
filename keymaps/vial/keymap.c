@@ -32,6 +32,7 @@ static bool album_art = false;
 static bool timed_out = false;
 static bool caps_on;
 // static int playing = 0;
+// qk_tap_dance_action_t tap_dance_actions[] = {};
 
 // hid function
 void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
@@ -177,25 +178,25 @@ layer_state_t layer_state_set_user(layer_state_t state) {
         case _NUMPAD:
             writeLayerState("Numpad Layer");
             if (!caps_on) {
-                sethsv(127, 255, 30, (rgb_led_t *)&led[0]);
+                rgblight_sethsv_at(127, 255, 30, 0);
             }
             break;
         case _MEDIA:
             writeLayerState("Media Layer");
             if (!caps_on) {
-                sethsv(201, 255, 30, (rgb_led_t *)&led[0]);
+                rgblight_sethsv_at(201, 255, 30, 0);
             }
             break;
         case _LAYER3:
             writeLayerState("Navigation Layer");
             if (!caps_on) {
-                sethsv(85, 255, 30, (rgb_led_t *)&led[0]);
+                rgblight_sethsv_at(85, 255, 30, 0);
             }
             break;
         case _LAYER4:
             writeLayerState("Macro Layer");
             if (!caps_on) {
-                sethsv(21, 255, 30, (rgb_led_t *)(&led[0]));
+                rgblight_sethsv_at(21, 255, 30, 0);
             }
             break;
     }
@@ -255,19 +256,26 @@ void keyboard_post_init_user(void) {
     my_font = qp_load_font_mem(font_scp);
     qp_drawtext(display, 2, 138, my_font, textArr);
 
-    sethsv(0, 0, 0, (rgb_led_t *)&led[0]);
+    rgblight_sethsv_at(0, 0, 0, 0);
 }
 
-bool encoder_update_user(uint8_t index, bool clockwise) {
-    if (index == 0) { /* First encoder */
-        if (!clockwise) {
-            tap_code(KC_VOLU);
-        } else {
-            tap_code(KC_VOLD);
-        }
-    }
-    return false;
-}
+// bool encoder_update_user(uint8_t index, bool clockwise) {
+//     if (!encoder_map_enabled()) {
+//         if (index == 0) {
+//             tap_code(clockwise ? KC_VOLD : KC_VOLU);
+//         }
+//     }
+//     return true;
+// }
+
+#ifdef ENCODER_MAP_ENABLE
+const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
+    [0] = {ENCODER_CCW_CW(KC_VOLU, KC_VOLD)},
+    [1] = {ENCODER_CCW_CW(KC_MEDIA_NEXT_TRACK, KC_MEDIA_PREV_TRACK)},
+    [2] = {ENCODER_CCW_CW(KC_WH_U, KC_WH_D)},
+    [3] = {ENCODER_CCW_CW(KC_NO, KC_NO)},
+};
+#endif
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 

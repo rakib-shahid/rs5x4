@@ -21,7 +21,7 @@
 
 // #define ENCODERS_PAD_A { GP20 }
 // #define ENCODERS_PAD_B { GP19 }
-#define ENCODERS_PAD_A { GP22 }
-#define ENCODERS_PAD_B { GP21 }
-#define ENCODER_RESOLUTION 4
+// #define ENCODERS_PAD_A { GP22 }
+// #define ENCODERS_PAD_B { GP21 }
+// #define ENCODER_RESOLUTION 4
 // #define ENCODER_DEFAULT_POS 0x3
